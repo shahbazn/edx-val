@@ -39,6 +39,19 @@ class EncodedVideoSerializer(serializers.ModelSerializer):
             "profile",
         )
 
+    def get_identity(self, data):
+        """
+        This hook is required for bulk update.
+        We need to override the default, to use the slug as the identity.
+
+        Note that the data has not yet been validated at this point,
+        so we need to deal gracefully with incorrect datatypes.
+        """
+        try:
+            return data.get('profile', None)
+        except AttributeError:
+            return None
+
 
 class VideoSerializer(serializers.HyperlinkedModelSerializer):
     """
