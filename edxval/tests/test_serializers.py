@@ -83,7 +83,7 @@ class SerializerTests(TestCase):
         """
         Tests for basic structure of EncodedVideoSetSerializer
         """
-        video = Video.objects.create(**constants.VIDEO_DICT_COAT)
+        video = Video.objects.create(**constants.VIDEO_DICT_FISH)
         EncodedVideo.objects.create(
             video=video,
             profile=Profile.objects.get(profile_name="desktop"),
@@ -98,4 +98,7 @@ class SerializerTests(TestCase):
         # Check for 2 EncodedVideo entries
         self.assertEqual(len(result.get("encoded_videos")), 2)
         # Check for original Video data
-        self.assertDictContainsSubset(constants.VIDEO_DICT_COAT, result)
+        self.assertDictContainsSubset(constants.VIDEO_DICT_FISH, result)
+
+
+

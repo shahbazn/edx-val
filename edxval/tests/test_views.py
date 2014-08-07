@@ -22,11 +22,8 @@ class VideoDetail(APITestCase):
         Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
         Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
 
-    """
-    Tests for successful PUT requests.
+    # Tests for successful PUT requests.
 
-    These tests should be returning HTTP_200_OK responses.
-    """
     def test_update_video(self):
         """
         Tests PUTting a single video with no encoded videos.
@@ -94,7 +91,7 @@ class VideoDetail(APITestCase):
             'video-detail',
             kwargs={"edx_video_id": constants.COMPLETE_SET_FISH.get("edx_video_id")}
         )
-        response = self.client.patch(
+        response = self.client.patch( # pylint: disable=E1101
             path=url,
             data=constants.COMPLETE_SET_UPDATE_FISH,
             format='json'
@@ -219,11 +216,7 @@ class VideoDetail(APITestCase):
             constants.ENCODED_VIDEO_DICT_UPDATE_FISH_DESKTOP.get("url")
         )
 
-    """
-    Tests for bad PUT requests.
-
-    These tests should be returning HTTP_400_BAD_REQUEST responses.
-    """
+    # Tests for bad PUT requests.]
 
     def test_update_an_invalid_encoded_videos(self):
         """
@@ -261,8 +254,6 @@ class VideoDetail(APITestCase):
         )
 
 
-
-
 class VideoListTest(APITestCase):
     """
     Tests the creations of Videos via POST/GET
@@ -278,7 +269,7 @@ class VideoListTest(APITestCase):
     def test_complete_set_two_encoded_video_post(self):
         """
         Tests POSTing Video and EncodedVideo pair
-        """
+        """ # pylint: disable=R0801
         url = reverse('video-list')
         response = self.client.post(
             url, constants.COMPLETE_SET_FISH, format='json'
@@ -427,7 +418,7 @@ class VideoListTest(APITestCase):
         with self.assertNumQueries(7):
             self.client.post(url, constants.COMPLETE_SET_STAR, format='json')
 
-    #Test queries for GET
+    #Tests for GET
 
     def test_queries_for_get(self):
         """
@@ -448,9 +439,8 @@ class VideoListTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         with self.assertNumQueries(5):
             self.client.get("/edxval/video/").data
-    """
-    Tests for GET
-    """
+
+
     def test_get_all_videos(self):
         """
         Tests getting all Video objects

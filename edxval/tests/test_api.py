@@ -7,6 +7,9 @@ import mock
 
 from django.test import TestCase
 from django.db import DatabaseError
+from django.core.urlresolvers import reverse
+from rest_framework import status
+from rest_framework.test import APITestCase
 
 from edxval.models import Profile, Video, EncodedVideo
 from edxval import api as api
@@ -24,17 +27,17 @@ class GetVideoInfoTest(TestCase):
         """
         Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
         Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
-        Video.objects.create(**constants.VIDEO_DICT_COAT)
+        Video.objects.create(**constants.VIDEO_DICT_FISH)
         EncodedVideo.objects.create(
             video=Video.objects.get(
-                edx_video_id=constants.VIDEO_DICT_COAT.get("edx_video_id")
+                edx_video_id=constants.VIDEO_DICT_FISH.get("edx_video_id")
             ),
             profile=Profile.objects.get(profile_name="mobile"),
             **constants.ENCODED_VIDEO_DICT_MOBILE
         )
         EncodedVideo.objects.create(
             video=Video.objects.get(
-                edx_video_id=constants.VIDEO_DICT_COAT.get("edx_video_id")
+                edx_video_id=constants.VIDEO_DICT_FISH.get("edx_video_id")
             ),
             profile=Profile.objects.get(profile_name="desktop"),
             **constants.ENCODED_VIDEO_DICT_DESKTOP
@@ -44,7 +47,11 @@ class GetVideoInfoTest(TestCase):
         """
         Tests for successful video request
         """
-        self.assertIsNotNone(api.get_video_info(constants.EDX_VIDEO_ID))
+        self.assertIsNotNone(
+            api.get_video_info(
+                constants.VIDEO_DICT_FISH.get("edx_video_id")
+            )
+        )
 
     def test_no_such_video(self):
         """
@@ -70,7 +77,9 @@ class GetVideoInfoTest(TestCase):
         """
         mock_init.side_effect = Exception("Mock error")
         with self.assertRaises(api.ValInternalError):
-            api.get_video_info(constants.EDX_VIDEO_ID)
+            api.get_video_info(
+                constants.VIDEO_DICT_FISH.get("edx_video_id")
+            )
 
     @mock.patch.object(Video.objects, 'get')
     def test_force_database_error(self, mock_get):
@@ -79,4 +88,71 @@ class GetVideoInfoTest(TestCase):
         """
         mock_get.side_effect = DatabaseError("DatabaseError")
         with self.assertRaises(api.ValInternalError):
-            api.get_video_info(constants.EDX_VIDEO_ID)
+            api.get_video_info(
+                constants.VIDEO_DICT_FISH.get("edx_video_id")
+            )
+
+
+class GetVideoInfoTestWithHttpCalls(APITestCase):
+    """
+    Tests get_video_info with database populated by HTTP reqeusts.
+    """
+
+    def setUp(self):
+        """
+        Creates EncodedVideo objects in database with HTTP requests.
+
+        The tests are similar to the GetVideoInfoTest class. This class
+        is to tests that we have the same results, using a populated
+        database via HTTP uploads.
+        """
+        Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
+        Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
+        url = reverse('video-list')
+        response = self.client.post(
+            url, constants.COMPLETE_SET_FISH, format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_get_video_found(self):
+        """
+        Tests for successful video request
+        """
+        self.assertIsNotNone(
+            api.get_video_info(
+                constants.COMPLETE_SET_FISH.get("edx_video_id")
+            )
+        )
+
+    def test_get_info_queries_for_two_encoded_video(self):
+        """
+        Tests number of queries for a Video/EncodedVideo(1) pair
+        """
+        with self.assertNumQueries(4):
+            api.get_video_info(constants.COMPLETE_SET_FISH.get("edx_video_id"))
+
+    def test_get_info_queries_for_one_encoded_video(self):
+        """
+        Tests number of queries for a Video/EncodedVideo(1) pair
+        """
+        url = reverse('video-list')
+        response = self.client.post(
+            url, constants.COMPLETE_SET_STAR, format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        with self.assertNumQueries(3):
+            api.get_video_info(constants.COMPLETE_SET_STAR.get("edx_video_id"))
+
+    def test_get_info_queries_for_only_video(self):
+        """
+        Tests number of queries for a Video with no Encoded Videopair
+        """
+        url = reverse('video-list')
+        response = self.client.post(
+            url, constants.VIDEO_DICT_ZEBRA, format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        with self.assertNumQueries(2):
+            api.get_video_info(constants.VIDEO_DICT_ZEBRA.get("edx_video_id"))
+
+
