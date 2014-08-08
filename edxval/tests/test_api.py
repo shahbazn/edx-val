@@ -15,10 +15,9 @@ from edxval.tests import constants
 
 
 class GetVideoInfoTest(TestCase):
-
-#TODO When upload portion is finished, do not forget to create tests for validating
-#TODO regex for models. Currently, objects are created manually and validators
-#TODO are not triggered.
+    """
+    Tests for our get_video_indo function in api.py
+    """
     def setUp(self):
         """
         Creates EncodedVideo objects in database
