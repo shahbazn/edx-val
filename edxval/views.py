@@ -1,13 +1,9 @@
 """
 Views file for django app edxval.
 """
-
 from rest_framework import generics, mixins
 from rest_framework.response import Response
 from rest_framework import status
-
-from rest_framework.decorators import api_view
-
 
 from edxval.models import Video, Profile
 from edxval.serializers import (
@@ -37,11 +33,14 @@ class VideoList(generics.ListCreateAPIView):
                 [self.pre_save(obj) for obj in serializer.object]
                 self.object = serializer.save(force_insert=True)
                 [self.post_save(obj, created=True) for obj in self.object]
-                return Response(data = {"encoded_videos":"meow"}, status=status.HTTP_201_CREATED)
-        print "yatta"
-        self.request._data = {"Success":"success"}
-        print self.request._data
-        return Response(data= serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                #Variable needs to be a dict with our fields for the APIView
+                print "before", self.request._data
+                self.request._data = self.request._data[0]
+                print "after", self.request._data
+                return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+        #Variable is not used for bulk but needs to be a dict for the APIView
+        self.request._data = {"foo": "bar"}
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ProfileList(generics.ListCreateAPIView):
