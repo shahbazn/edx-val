@@ -10,7 +10,7 @@ from django.db import DatabaseError
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ValidationError
 from rest_framework import status
-from ddt import ddt, data
+from ddt import ddt, data, unpack
 
 from edxval.models import Profile, Video, EncodedVideo, CourseVideo
 from edxval import api as api
@@ -104,7 +104,7 @@ class CreateProfileTest(TestCase):
         constants.PROFILE_DICT_MANY_INVALID,
         constants.PROFILE_DICT_INVALID_NAME,
     )
-    def test_invalid_create_profile(self, data): # pylint: disable=W0621
+    def test_invalid_create_profile(self, data):  # pylint: disable=W0621
         """
         Tests the creation of invalid profile data
         """
@@ -112,9 +112,10 @@ class CreateProfileTest(TestCase):
             api.create_profile(data)
 
 
-class GetVideoInfoTest(TestCase):
+@ddt
+class GetVideoTest(TestCase):
     """
-    Tests for our get_video_info function in api.py
+    Tests all get videos functions in api.py
     """
 
     def setUp(self):
@@ -199,6 +200,18 @@ class GetVideoInfoTest(TestCase):
             api.get_video_info(
                 constants.VIDEO_DICT_FISH.get("edx_video_id")
             )
+
+    @data(
+        # ('not-a-course', ["mobile"]),
+        # ("test-course", ["desktop"]),
+        ("test-course", ["desktop", "mobile"])
+    )
+    @unpack
+    def test_get_video_for_course_and_profiles(self, course_id, profiles):
+        """tests get_video_info_for_course_and_profiles"""
+        response = api.get_video_info_for_course_and_profiles(course_id, profiles)
+        print response
+        self.assertEqual(1,2)
 
 
 class GetUrlsForProfileTest(TestCase):

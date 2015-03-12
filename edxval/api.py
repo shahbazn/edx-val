@@ -282,6 +282,10 @@ def get_video_info_for_course_and_profile(course_id, profile_name):
     Returns a dict mapping profiles to URLs.
 
     If the profiles or video is not found, urls will be blank.
+
+    Args:
+        course_id (str): id of the course
+        profiles (list): list of profile_names
     """
     # In case someone passes in a key (VAL doesn't really understand opaque keys)
     course_id = unicode(course_id)
@@ -295,12 +299,29 @@ def get_video_info_for_course_and_profile(course_id, profile_name):
         logger.exception(error_message)
         raise ValInternalError(error_message)
 
-    # DRF serializers were causing extra queries for some reason...
-    return {
-        enc_vid.video.edx_video_id: {
+
+    result = {}
+
+    #TODO Since edx_video_id is the key, we need to change key to profile?
+
+    for enc_vid in encoded_videos:
+        result[enc_vid.video.edx_video_id]= {
+            "profile_name": enc_vid.profile.profile_name,
             "url": enc_vid.url,
             "file_size": enc_vid.file_size,
             "duration": enc_vid.video.duration,
         }
-        for enc_vid in encoded_videos
-    }
+        print enc_vid
+    print result
+
+    # DRF serializers were causing extra queries for some reason...
+    return result
+    # {
+    #     enc_vid.video.edx_video_id: {
+    #         "profile_name": enc_vid.profile.profile_name,
+    #         "url": enc_vid.url,
+    #         "file_size": enc_vid.file_size,
+    #         "duration": enc_vid.video.duration,
+    #     }
+    #     for enc_vid in encoded_videos
+    # }
