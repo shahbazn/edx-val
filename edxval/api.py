@@ -208,6 +208,8 @@ def _get_video(edx_video_id):
 
     Raises ValVideoNotFoundError if the video cannot be retrieved.
     """
+    # strip edx_video_id to prevent ValVideoNotFoundError error if unwanted spaces are there. TNL-6421
+    edx_video_id = edx_video_id.strip()
     try:
         return Video.objects.prefetch_related("encoded_videos", "courses").get(edx_video_id=edx_video_id)
     except Video.DoesNotExist:
